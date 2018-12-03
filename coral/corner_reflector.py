@@ -49,7 +49,7 @@ def calc_target_energy(d, cr_pos, targ_win_sz, clt_win_sz):
         Nclt.append(B)
         Avg_clt.append(10*np.log10(A / B))
 
-    print("Total integrated energy in target window is:",En)
+    #print("Total integrated energy in target window is:",En)
     #print("Number of samples in target window is:",Ncr)
     #print("Average clutter intensity is:",Avg_clt, "decibels")
 
@@ -101,10 +101,10 @@ def calc_scr(Ecr, Eclt, Nclt):
     for i in range(len(Ecr)):
         # Signal to Clutter Ratio (Garthwaite 2017 Equation 7)
         scr = Ecr[i] / (Eclt[i] / Nclt[i])
-        print("SCR is ",scr, Ecr[i], Eclt[i], Nclt[i])
+        #print("SCR is ",scr, Ecr[i], Eclt[i], Nclt[i])
         scr_db.append(10 * np.log10(scr))
 
-    print("Target SCR is:",scr_db,"dB",scr)
+    #print("Target SCR is:",scr_db,"dB",scr)
     return scr_db
 
 
@@ -122,7 +122,7 @@ def calc_rcs(Ecr, par):
     for i in range(len(Ecr)):
         # Radar Cross Section (Garthwaite 2017 Equation 8)
         rcs = Ecr[i] * A
-        print("RCS is ",rcs, Ecr[i])
+        #print("RCS is ",rcs, Ecr[i])
         rcs_db.append(10 * np.log10(rcs))
 
     #print("target RCS is:",rcs_db,"dBsm")
@@ -154,7 +154,7 @@ def readmli(datafile, par, sub_im, cr):
     d = np.fromfile(datafile, dtype=dt, count=ct)
 
     d = d.reshape(int(par['azimuth_lines']), int(par['range_samples']))
-    print("Number of elements and size of the array is",d.size, d.shape)
+    #print("Number of elements and size of the array is",d.size, d.shape)
     #d[d==0]= np.nan # convert zeros to nan
     return d[cr[1]-sub_im:cr[1]+sub_im,cr[0]-sub_im:cr[0]+sub_im]
 
