@@ -16,6 +16,12 @@ Matplotlib
 * **Matt Garthwaite** - [mcgarth](https://github.com/mcgarth)
 * **Thomas Fuhrmann** - [tfuhrmann](https://github.com/tfuhrmann)
 
+### Testing
+
+To run unit tests from within CoRAL repository directory: 
+
+```python -m unittest discover tests/```
+
 ### License
 
 Copyright 2018 Geoscience Australia
