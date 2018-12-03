@@ -6,7 +6,7 @@ from matplotlib.colors import LogNorm
 import glob, re
 import numpy as np
 from datetime import datetime
-from corner_reflector import *
+from coral.corner_reflector import *
 
 # start/end date for plots
 start = datetime(2018, 7, 1)
@@ -14,7 +14,7 @@ end = datetime(2018, 11, 1)
 
 # Get list of image files in current directory
 gtiffd = []
-for file in glob.glob("r*4rlks.mli"):
+for file in glob.glob("data/*.mli"):
     gtiffd.append(file)
 
 gtiffd.sort()
@@ -22,7 +22,7 @@ gtiffd.sort()
 # final target positions manual entry
 sites = {
 #                       rg     az
-    'SERF' : np.array([[ 5237, 9660]]),
+    'SERF' : np.array([[ 87, 110]]),
 }
 
 #cropped image size
@@ -42,7 +42,7 @@ def _inner(gtiff,sub_im,cr):
 
     for i, g in enumerate(gtiff):
         # get list of datetime objects
-        m = re.search('r(.+?)_VV', g)
+        m = re.search('data/(.+?)_VV', g)
         if m:
             t.append(datetime.strptime(m.group(1), "%Y%m%d"))
 
