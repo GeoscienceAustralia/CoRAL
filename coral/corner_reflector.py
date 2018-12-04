@@ -39,8 +39,13 @@ def loop(files, sub_im, cr, targ_win_sz, clt_win_sz):
     #print("azimuth_pixel_spacing is:",par['azimuth_pixel_spacing'].split()[0])
     cr_pos = np.array([sub_im, sub_im])
 
-    # calculate target energy, SCR and RCS
-    En, Ncr, Eclt, Nclt, Avg_clt = calc_target_energy(d, cr_pos, targ_win_sz, clt_win_sz)
+    # calculate target energy
+    En, Ncr = calc_integrated_energy(d, cr_pos, targ_win_sz)
+    # calculate clutter energy for window centred in same spot as target window
+    E1, N1 = calc_integrated_energy(d, cr_pos, clt_win_sz)
+    # calculate average clutter
+    Avg_clt, Eclt, Nclt = calc_clutter_intensity(En, E1, Ncr, N1)
+    #
     Ecr = calc_total_energy(Ncr, Nclt, Eclt, En)
     scr = calc_scr(Ecr, Eclt, Nclt)
     rcs = calc_rcs(Ecr, par)
@@ -57,64 +62,42 @@ def get_win_bounds(pos, winsz):
 
     return xmin, xmax, ymin, ymax
 
-def calc_target_energy(d, cr_pos, targ_win_sz, clt_win_sz):
-    """Calculate the integrated energy within target and clutter windows"""
-    # calculate target window bounds
-    xmin_t, xmax_t, ymin_t, ymax_t = get_win_bounds(cr_pos, targ_win_sz)
 
-    # calculate clutter window bounds. 
-    # clutter window centred in same sport as target window
-    xmin_c, xmax_c, ymin_c, ymax_c = get_win_bounds(cr_pos, clt_win_sz)
-
-    En = []
-    Ncr = []
-    Eclt = []
-    Nclt = []
-    Avg_clt = []
-
-    for i in range(d.shape[0]):
-        # target subset
-        subd_t = d[i, ymin_t:ymax_t, xmin_t:xmax_t]
-
-        # Garthwaite 2017 Equation 7
-        En.append(subd_t.sum()) # total integrated target energy
-        Ncr.append(subd_t.size) # number of samples in target window
-
-        # clutter subset
-        subd_c = d[i, ymin_c:ymax_c, xmin_c:xmax_c]
-
-        A = subd_c.sum() - subd_t.sum()
-        Eclt.append(A)
-        B = subd_c.size - subd_t.size
-        Nclt.append(B)
-        Avg_clt.append(10*np.log10(A / B))
-
-    #print("Total integrated energy in target window is:",En)
-    #print("Number of samples in target window is:",Ncr)
-    #print("Average clutter intensity is:",Avg_clt, "decibels")
-
-    return En, Ncr, Eclt, Nclt, Avg_clt
-
-
-def calc_clutter(d, clt_pos, clt_win_sz):
-    """Calculate the average intensity in the clutter window"""
+def calc_integrated_energy(d, pos, winsz):
+    """Calculate the integrated energy within sample window"""
     # calculate window bounds
-    xmin, xmax, ymin, ymax = get_win_bounds(clt_pos, clt_win_sz)
+    xmin, xmax, ymin, ymax = get_win_bounds(pos, winsz)
 
-    Eclt = []
-    Nclt = []
-    Avg_clt = []
+    E = []
+    N = []
 
     for i in range(d.shape[0]):
-        # subset of full data array around defined CR
+        # get image subset
         subd = d[i, ymin:ymax, xmin:xmax]
 
-        Eclt.append(subd.sum())
-        Nclt.append(subd.size)
-        Avg_clt.append(10*np.log10(subd.sum() / subd.size))
+        E.append(subd.sum()) # total integrated energy in window
+        N.append(subd.size) # number of samples in window
+
+    #print("Total integrated energy in window is:",E)
+    #print("Number of samples in window is:",N)
+    return E, N
+
+
+def calc_clutter_intensity(En, E, Ncr, N):
+    """Calculate the average clutter intensity"""
+    Avg_clt = []
+    Eclt = []
+    Nclt = []
+
+    for i,item in enumerate(En):
+        A = E[i] - En[i]
+        B = N[i] - Ncr[i]
+        Avg_clt.append(10*np.log10(A / B))
+        Eclt.append(A)
+        Nclt.append(B)
 
     #print("Average clutter intensity is:",Avg_clt, "decibels")
-    return Eclt, Nclt, Avg_clt
+    return Avg_clt, Eclt, Nclt
 
 
 def calc_total_energy(Ncr, Nclt, Eclt, En):
