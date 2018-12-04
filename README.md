@@ -1,5 +1,7 @@
 # CoRAL - Corner Reflector Analysis Library
 
+[![Travis](https://img.shields.io/travis/GeoscienceAustralia/CoRAL/master.svg?label=Travis%20CI)](https://travis-ci.org/GeoscienceAustralia/CoRAL)
+
 CoRAL is a library of tools for analysing the response of corner reflectors (or other targets) in Synthetic Aperture Radar (SAR) images. The library started as a set of Python scripts developed during corner reflector prototyping experiments at Geoscience Australia. This work, and the implemented algorithms are documented in [Garthwaite 2017](https://doi.org/10.3390/rs9070648).
 
 ### Dependencies
