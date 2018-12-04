@@ -1,7 +1,7 @@
 import unittest, glob
 import os.path
 import numpy as np
-from coral.corner_reflector import calc_target_energy, readpar, readmli, calc_total_energy, calc_scr, calc_rcs
+from coral.corner_reflector import readpar, readmli, calc_total_energy, calc_scr, calc_rcs, calc_integrated_energy, calc_clutter_intensity
 
 
 class TestCoral(unittest.TestCase):
@@ -22,34 +22,51 @@ class TestCoral(unittest.TestCase):
         cls.d = d1[np.newaxis, :, :,]
 
 
-    def test_calc_target_energy(self):
-        '''Test the target energy calculations'''
-        En, Ncr, Eclt, Nclt, Avg_clt = calc_target_energy(self.d, self.cr_pos, self.targ_win_sz, self.clt_win_sz)
+    def test_integrated_energy(self):
+        '''Test the integrated energy calculations'''
+        En, Ncr = calc_integrated_energy(self.d, self.cr_pos, self.targ_win_sz)
+        E1, N1 = calc_integrated_energy(self.d, self.cr_pos, self.clt_win_sz)
  
-        self.assertEqual(round(En[0]), 23)
-        self.assertEqual(Ncr[0], 25)
-        self.assertEqual(round(Eclt[0]), 4)
-        self.assertEqual(Nclt[0], 56)
-        self.assertEqual(round(Avg_clt[0]), -11)
+        self.assertEqual(round(En[0]), 23) # 22.778708
+        self.assertEqual(Ncr[0], 25) # 5*5=25
+        self.assertEqual(round(E1[0]), 27) # 26.769154
+        self.assertEqual(N1[0], 81) # 9*9=81
 
+    def test_clutter_intensity(self):
+        '''Test the average clutter calculations'''
+        En = [22.778708]
+        Ncr = [25]
+        E1 = [26.769154]
+        N1 = [81]
+        Avg_clt, Eclt, Nclt = calc_clutter_intensity(En, E1, Ncr, N1)
+
+        self.assertEqual(round(Avg_clt[0]), -11) # -11.47166578963688
+        self.assertEqual(round(Eclt[0]), 4) # 3.9904459999999986
+        self.assertEqual(Nclt[0], 56) # 81-24=56 
 
     def test_calc_total_energy(self):
         '''Test the total energy calculation'''
-        En, Ncr, Eclt, Nclt, Avg_clt = calc_target_energy(self.d, self.cr_pos, self.targ_win_sz, self.clt_win_sz)
+        Avg_clt = [-11.4716657896368]
+        Eclt = [3.9904459999999986]
+        Nclt = [56]
+        Ncr = [25]
+        En = [22.778708]
         Ecr = calc_total_energy(Ncr, Nclt, Eclt, En)
 
-        self.assertEqual(round(Ecr[0]), 21)
+        print(Ecr[0])
+        self.assertEqual(round(Ecr[0]), 21) # 20.997258356639318
 
 
     def test_rcs_scr_calc(self):
         '''Test the RCS and SCR calculations'''
-        En, Ncr, Eclt, Nclt, Avg_clt = calc_target_energy(self.d, self.cr_pos, self.targ_win_sz, self.clt_win_sz)
-        Ecr = calc_total_energy(Ncr, Nclt, Eclt, En)
+        Eclt = [3.9904459999999986]
+        Nclt = [56]
+        Ecr = [20.997258356639318]
         scr = calc_scr(Ecr, Eclt, Nclt)
         rcs = calc_rcs(Ecr, self.par)
 
-        self.assertEqual(round(scr[0]), 25)
-        self.assertEqual(round(rcs[0]), 37)
+        self.assertEqual(round(scr[0]), 25) # 24.693291807917642
+        self.assertEqual(round(rcs[0]), 37) # 36.968228116662544
 
 
 class TestRCSTimeSeries(unittest.TestCase):
@@ -78,7 +95,9 @@ class TestRCSTimeSeries(unittest.TestCase):
 
     def test_rcs_time_series(self):
         '''Test the RCS and SCR calculations'''
-        En, Ncr, Eclt, Nclt, Avg_clt = calc_target_energy(self.d, self.cr_pos, self.targ_win_sz, self.clt_win_sz)
+        En, Ncr = calc_integrated_energy(self.d, self.cr_pos, self.targ_win_sz)
+        E1, N1 = calc_integrated_energy(self.d, self.cr_pos, self.clt_win_sz)
+        Avg_clt, Eclt, Nclt = calc_clutter_intensity(En, E1, Ncr, N1)
         Ecr = calc_total_energy(Ncr, Nclt, Eclt, En)
         scr = calc_scr(Ecr, Eclt, Nclt)
         rcs = calc_rcs(Ecr, self.par)
