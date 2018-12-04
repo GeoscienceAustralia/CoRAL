@@ -102,6 +102,8 @@ def calc_scr(Ecr, Eclt, Nclt):
         # Signal to Clutter Ratio (Garthwaite 2017 Equation 7)
         scr = Ecr[i] / (Eclt[i] / Nclt[i])
         #print("SCR is ",scr, Ecr[i], Eclt[i], Nclt[i])
+        # Re-assign negative SCR to zero dB
+        if scr < 1: scr = 1
         scr_db.append(10 * np.log10(scr))
 
     #print("Target SCR is:",scr_db,"dB",scr)
@@ -123,6 +125,8 @@ def calc_rcs(Ecr, par):
         # Radar Cross Section (Garthwaite 2017 Equation 8)
         rcs = Ecr[i] * A
         #print("RCS is ",rcs, Ecr[i])
+        # Re-assign negative RCS to zero dB
+        if rcs < 1: rcs = 1
         rcs_db.append(10 * np.log10(rcs))
 
     #print("target RCS is:",rcs_db,"dBsm")

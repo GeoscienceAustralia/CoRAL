@@ -83,11 +83,8 @@ class TestRCSTimeSeries(unittest.TestCase):
         scr = calc_scr(Ecr, Eclt, Nclt)
         rcs = calc_rcs(Ecr, self.par)
 
-        #print(np.nansum(rcs))
-        #print(np.nansum(scr))
-
         self.assertEqual(round(np.nansum(rcs), 6), 215.210430)
-        self.assertEqual(round(np.nansum(scr), 6), 119.390044)
+        self.assertEqual(round(np.nansum(scr), 6), 120.524232)
 
 
 if __name__ == '__main__':
