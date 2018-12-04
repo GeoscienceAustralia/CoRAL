@@ -48,19 +48,23 @@ def loop(files, sub_im, cr, targ_win_sz, clt_win_sz):
     return avgI, rcs, scr, Avg_clt, t
 
 
+def get_win_bounds(pos, winsz):
+    """Calculate sample window min/max bounds"""
+    xmin = int(np.ceil(pos[0] - winsz / 2))
+    xmax = int(np.floor(pos[0] + winsz / 2 + 1))
+    ymin = int(np.ceil(pos[1] - winsz / 2))
+    ymax = int(np.floor(pos[1] + winsz / 2 + 1))    
+
+    return xmin, xmax, ymin, ymax
+
 def calc_target_energy(d, cr_pos, targ_win_sz, clt_win_sz):
     """Calculate the integrated energy within target and clutter windows"""
     # calculate target window bounds
-    xmin_t = int(np.ceil(cr_pos[0] - targ_win_sz / 2))
-    xmax_t = int(np.floor(cr_pos[0] + targ_win_sz / 2 + 1))
-    ymin_t = int(np.ceil(cr_pos[1] - targ_win_sz / 2))
-    ymax_t = int(np.floor(cr_pos[1] + targ_win_sz / 2 + 1))
+    xmin_t, xmax_t, ymin_t, ymax_t = get_win_bounds(cr_pos, targ_win_sz)
 
-    # calculate clutter window bounds
-    xmin_c = int(np.ceil(cr_pos[0] - clt_win_sz / 2))
-    xmax_c = int(np.floor(cr_pos[0] + clt_win_sz / 2 + 1))
-    ymin_c = int(np.ceil(cr_pos[1] - clt_win_sz / 2))
-    ymax_c = int(np.floor(cr_pos[1] + clt_win_sz / 2 + 1))
+    # calculate clutter window bounds. 
+    # clutter window centred in same sport as target window
+    xmin_c, xmax_c, ymin_c, ymax_c = get_win_bounds(cr_pos, clt_win_sz)
 
     En = []
     Ncr = []
@@ -71,10 +75,6 @@ def calc_target_energy(d, cr_pos, targ_win_sz, clt_win_sz):
     for i in range(d.shape[0]):
         # target subset
         subd_t = d[i, ymin_t:ymax_t, xmin_t:xmax_t]
-
-        #plt.matshow(subd_t)
-        #plt.colorbar()
-        #plt.show()
 
         # Garthwaite 2017 Equation 7
         En.append(subd_t.sum()) # total integrated target energy
@@ -97,14 +97,10 @@ def calc_target_energy(d, cr_pos, targ_win_sz, clt_win_sz):
 
 
 def calc_clutter(d, clt_pos, clt_win_sz):
-    """Calculate the average clutter intensity in the sample windows"""
-    # calculate second image bounds
-    xmin = int(np.ceil(clt_pos[0] - clt_win_sz / 2))
-    xmax = int(np.floor(clt_pos[0] + clt_win_sz / 2 + 1))
-    ymin = int(np.ceil(clt_pos[1] - clt_win_sz / 2))
-    ymax = int(np.floor(clt_pos[1] + clt_win_sz / 2 + 1))
+    """Calculate the average intensity in the clutter window"""
+    # calculate window bounds
+    xmin, xmax, ymin, ymax = get_win_bounds(clt_pos, clt_win_sz)
 
-    #print(xmin, xmax, ymin, ymax)
     Eclt = []
     Nclt = []
     Avg_clt = []
@@ -112,10 +108,6 @@ def calc_clutter(d, clt_pos, clt_win_sz):
     for i in range(d.shape[0]):
         # subset of full data array around defined CR
         subd = d[i, ymin:ymax, xmin:xmax]
-
-        #plt.matshow(subd)
-        #plt.colorbar()
-        #plt.show()
 
         Eclt.append(subd.sum())
         Nclt.append(subd.size)
