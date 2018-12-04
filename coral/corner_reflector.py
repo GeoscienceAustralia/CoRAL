@@ -1,5 +1,10 @@
-from __future__ import print_function
-import glob, re
+"""
+This python module contains functions for calculating the response of
+corner reflectors or other targets in Synthetic Aperture Radar images
+"""
+#from __future__ import print_function
+#import glob
+import re
 from matplotlib import pyplot as plt
 import numpy as np
 from datetime import datetime
@@ -7,9 +12,44 @@ from decimal import Decimal as D
 import sys, os, os.path
 
 
+def loop(files, sub_im, cr, targ_win_sz, clt_win_sz):
+    """conduct CR processing for each site in a loop"""
+    # pre-allocate ndarray
+    d = np.empty((len(files),sub_im*2, sub_im*2))
+    t = []
+
+    for i, g in enumerate(files):
+        # get list of datetime objects
+        m = re.search('data/(.+?)_VV', g)
+        if m:
+            t.append(datetime.strptime(m.group(1), "%Y%m%d"))
+
+        print(i, g, g+'.par')
+        # read GAMMA 'par' file
+        par = readpar(g + '.par')
+
+        # open GAMMA float file and read subset of image
+        d[i] = readmli(g, par, sub_im, cr)
+
+    # calculate mean Intensity image
+    avgI = 10*np.log10(np.mean(d, axis=0))
+
+    #print("Incidence angle is:",par['incidence_angle'].split()[0])
+    #print("range_pixel_spacing is:",par['range_pixel_spacing'].split()[0])
+    #print("azimuth_pixel_spacing is:",par['azimuth_pixel_spacing'].split()[0])
+    cr_pos = np.array([sub_im, sub_im])
+
+    # calculate target energy, SCR and RCS
+    En, Ncr, Eclt, Nclt, Avg_clt = calc_target_energy(d, cr_pos, targ_win_sz, clt_win_sz)
+    Ecr = calc_total_energy(Ncr, Nclt, Eclt, En)
+    scr = calc_scr(Ecr, Eclt, Nclt)
+    rcs = calc_rcs(Ecr, par)
+
+    return avgI, rcs, scr, Avg_clt, t
+
 
 def calc_target_energy(d, cr_pos, targ_win_sz, clt_win_sz):
-
+    """Calculate the integrated energy within target and clutter windows"""
     # calculate target window bounds
     xmin_t = int(np.ceil(cr_pos[0] - targ_win_sz / 2))
     xmax_t = int(np.floor(cr_pos[0] + targ_win_sz / 2 + 1))
@@ -57,13 +97,14 @@ def calc_target_energy(d, cr_pos, targ_win_sz, clt_win_sz):
 
 
 def calc_clutter(d, clt_pos, clt_win_sz):
+    """Calculate the average clutter intensity in the sample windows"""
     # calculate second image bounds
     xmin = int(np.ceil(clt_pos[0] - clt_win_sz / 2))
     xmax = int(np.floor(clt_pos[0] + clt_win_sz / 2 + 1))
     ymin = int(np.ceil(clt_pos[1] - clt_win_sz / 2))
     ymax = int(np.floor(clt_pos[1] + clt_win_sz / 2 + 1))
 
-    print(xmin, xmax, ymin, ymax)
+    #print(xmin, xmax, ymin, ymax)
     Eclt = []
     Nclt = []
     Avg_clt = []
@@ -85,6 +126,7 @@ def calc_clutter(d, clt_pos, clt_win_sz):
 
 
 def calc_total_energy(Ncr, Nclt, Eclt, En):
+    """Calculate the total integrated energy in the target impulse response"""
     Ecr = []
 
     for i in range(len(Ncr)):
@@ -96,6 +138,7 @@ def calc_total_energy(Ncr, Nclt, Eclt, En):
 
 
 def calc_scr(Ecr, Eclt, Nclt):
+    """Calculate the Signal to Clutter Ratio in decibels"""
     scr_db = []
 
     for i in range(len(Ecr)):
@@ -111,6 +154,7 @@ def calc_scr(Ecr, Eclt, Nclt):
 
 
 def calc_rcs(Ecr, par):
+    """Calculate the Radar Cross Section of the target in decibels"""
     rho_r = float(par['range_pixel_spacing'].split()[0])
     rho_a = float(par['azimuth_pixel_spacing'].split()[0])
     theta = float(par['incidence_angle'].split()[0])
@@ -135,7 +179,7 @@ def calc_rcs(Ecr, par):
 
 ################################
 def readpar(file):
-    """Function to read a GAMMA par file into a dictionary"""
+    """Function to read a GAMMA 'par' file into a dictionary"""
     par={}
     with open(file) as f:
         for line in f:
