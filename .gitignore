@@ -1,0 +1,25 @@
+*.png
+*.pyo
+*.pyc
+.project
+.pydevproject
+/tmp
+/.idea
+.spyderworkspace
+doc
+out
+.eggs/
+.tox/
+build/
+docs/_build/
+#tests/test_data/
+.cache/
+# .coverage tmp files
+.coverage.*
+.vscode/
+dist/
+*.egg-info/
+.installed.cfg
+*.egg
+*__pycache__/
+*~
