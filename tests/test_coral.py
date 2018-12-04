@@ -1,7 +1,10 @@
+"""
+This Python module contains unittests for testing CoRAL algorithms and workflow
+"""
 import unittest, glob
 import os.path
 import numpy as np
-from coral.corner_reflector import readpar, readmli, calc_total_energy, calc_scr, calc_rcs, calc_integrated_energy, calc_clutter_intensity
+from coral.corner_reflector import *
 
 
 class TestCoral(unittest.TestCase):
@@ -53,7 +56,6 @@ class TestCoral(unittest.TestCase):
         En = [22.778708]
         Ecr = calc_total_energy(Ncr, Nclt, Eclt, En)
 
-        print(Ecr[0])
         self.assertEqual(round(Ecr[0]), 21) # 20.997258356639318
 
 
