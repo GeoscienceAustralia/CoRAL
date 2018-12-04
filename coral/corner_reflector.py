@@ -2,10 +2,8 @@
 This python module contains functions for calculating the response of
 corner reflectors or other targets in Synthetic Aperture Radar images
 """
-#from __future__ import print_function
-#import glob
 import re
-from matplotlib import pyplot as plt
+#from matplotlib import pyplot as plt
 import numpy as np
 from datetime import datetime
 from decimal import Decimal as D
@@ -19,10 +17,10 @@ def loop(files, sub_im, cr, targ_win_sz, clt_win_sz):
     t = []
 
     for i, g in enumerate(files):
-        # get list of datetime objects
-        m = re.search('data/(.+?)_VV', g)
+        # search for 8 character data string in file name
+        m = re.search('\d{8}', g)
         if m:
-            t.append(datetime.strptime(m.group(1), "%Y%m%d"))
+            t.append(datetime.strptime(m.group(0), "%Y%m%d")) # convert to datetime object
 
         print(i, g, g+'.par')
         # read GAMMA 'par' file
