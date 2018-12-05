@@ -180,27 +180,3 @@ def readmli(datafile, par, sub_im, cr):
     return d[cr[1]-sub_im:cr[1]+sub_im,cr[0]-sub_im:cr[0]+sub_im]
 
 
-################################
-def read_radar_coords(filename):
-    print("Reading textfile with CR positions...")
-    site = []
-    az = []
-    rg = []
-    if os.path.isfile(filename) and os.access(filename, os.R_OK):
-        print("File", filename, "exists and is readable.")
-        f = open(filename)
-        lines = f.readlines()
-        idx = 0
-        for line in lines:
-            # get site name
-            site.append(line.split("\t")[0])
-            az.append(line.split("\t")[5])
-            rg.append(line.split("\t")[6])
-            idx = idx + 1
-        print("Radar coordinates at %d sites read" % (idx))
-    else:
-        print("ERROR: Can't read file", filename)
-        sys.exit()
-    print()
-    return site, az, rg
-
