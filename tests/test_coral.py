@@ -117,5 +117,26 @@ class TestRCSTimeSeries(unittest.TestCase):
         self.assertEqual(round(np.nansum(scr), 6), 120.524232)
 
 
+class TestLoop(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.files = []
+        for file in glob.glob("data/*.mli"):
+            cls.files.append(file)
+
+        cls.files.sort()
+        cls.cr = [ 87, 110]
+        cls.sub_im = 51
+        cls.targ_win_sz = 5
+        cls.clt_win_sz = 9
+
+    def test_loop(self):
+        '''test the calculation loop function'''
+        avgI, rcs, scr, Avg_clt, t = loop(self.files, self.sub_im, self.cr, self.targ_win_sz, self.clt_win_sz)
+
+        # test the mean value of the average intensity image
+        self.assertEqual(round(np.mean(avgI), 6), -11.385613) # -11.385613198856245
+
+
 if __name__ == '__main__':
     unittest.main()
