@@ -46,7 +46,12 @@ def loop(files, sub_im, cr, targ_win_sz, clt_win_sz):
     #
     Ecr = calc_total_energy(Ncr, Nclt, Eclt, En)
     scr = calc_scr(Ecr, Eclt, Nclt)
-    rcs = calc_rcs(Ecr, par)
+
+    rho_r = float(par['range_pixel_spacing'].split()[0])
+    rho_a = float(par['azimuth_pixel_spacing'].split()[0])
+    theta = float(par['incidence_angle'].split()[0])
+
+    rcs = calc_rcs(Ecr, rho_r, rho_a, theta)
 
     return avgI, rcs, scr, Avg_clt, t
 
@@ -126,12 +131,8 @@ def calc_scr(Ecr, Eclt, Nclt):
     return scr_db
 
 
-def calc_rcs(Ecr, par):
+def calc_rcs(Ecr, rho_r, rho_a, theta):
     """Calculate the Radar Cross Section of the target in decibels"""
-    rho_r = float(par['range_pixel_spacing'].split()[0])
-    rho_a = float(par['azimuth_pixel_spacing'].split()[0])
-    theta = float(par['incidence_angle'].split()[0])
-
     # illuminated area (Garthwaite 2017 Equation 2)
     A = (rho_r * rho_a) / np.sin((theta/180) * np.pi)
 

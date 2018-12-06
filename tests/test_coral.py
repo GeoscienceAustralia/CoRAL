@@ -19,8 +19,13 @@ class TestCoral(unittest.TestCase):
         cls.cr_pos = np.array([sub_im, sub_im])
 
         # open files and read subset of image
-        cls.par = readpar(g + '.par')
-        d1 = readmli(g, cls.par, sub_im, cr)
+        par = readpar(g + '.par')
+        d1 = readmli(g, par, sub_im, cr)
+
+        cls.rho_r = float(par['range_pixel_spacing'].split()[0])
+        cls.rho_a = float(par['azimuth_pixel_spacing'].split()[0])
+        cls.theta = float(par['incidence_angle'].split()[0])
+
         # force 3rd dimension of array
         cls.d = d1[np.newaxis, :, :,]
 
@@ -65,7 +70,7 @@ class TestCoral(unittest.TestCase):
         Nclt = [56]
         Ecr = [20.997258356639318]
         scr = calc_scr(Ecr, Eclt, Nclt)
-        rcs = calc_rcs(Ecr, self.par)
+        rcs = calc_rcs(Ecr, self.rho_r, self.rho_a, self.theta)
 
         self.assertEqual(round(scr[0]), 25) # 24.693291807917642
         self.assertEqual(round(rcs[0]), 37) # 36.968228116662544
@@ -91,8 +96,12 @@ class TestRCSTimeSeries(unittest.TestCase):
 
         # open files and read subset of image
         for i, g in enumerate(files):
-            cls.par = readpar(g + '.par')
-            cls.d[i] = readmli(g, cls.par, sub_im, cr)
+            par = readpar(g + '.par')
+            cls.d[i] = readmli(g, par, sub_im, cr)
+
+        cls.rho_r = float(par['range_pixel_spacing'].split()[0])
+        cls.rho_a = float(par['azimuth_pixel_spacing'].split()[0])
+        cls.theta = float(par['incidence_angle'].split()[0])
 
 
     def test_rcs_time_series(self):
@@ -102,7 +111,7 @@ class TestRCSTimeSeries(unittest.TestCase):
         Avg_clt, Eclt, Nclt = calc_clutter_intensity(En, E1, Ncr, N1)
         Ecr = calc_total_energy(Ncr, Nclt, Eclt, En)
         scr = calc_scr(Ecr, Eclt, Nclt)
-        rcs = calc_rcs(Ecr, self.par)
+        rcs = calc_rcs(Ecr, self.rho_r, self.rho_a, self.theta)
 
         self.assertEqual(round(np.nansum(rcs), 6), 215.210430)
         self.assertEqual(round(np.nansum(scr), 6), 120.524232)
