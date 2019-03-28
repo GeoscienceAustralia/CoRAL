@@ -14,12 +14,12 @@ def readfile(file, sub_im, cr):
     root, ext = os.path.splitext(file)
 
     if ext == '.tif':
-        print('Reading tiff image')
+        print('Reading tiff image:', file)
         par = readpar(root + '.mli.par')
         data = readtiff(file, sub_im, cr)
 
     else: # must be GAMMA flat binary float format
-        print('Reading flat binary image')
+        print('Reading flat binary image', file)
         par = readpar(root + ext + '.par')
         data = readmli(file, par, sub_im, cr)
 

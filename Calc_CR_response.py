@@ -15,7 +15,7 @@ end = datetime(2018, 11, 1)
 
 # Get list of image files in current directory
 files = []
-for file in glob.glob("data/*.mli"):
+for file in glob.glob("data/*.tif"):
     files.append(file)
 
 files.sort()

@@ -22,7 +22,6 @@ def loop(files, sub_im, cr, targ_win_sz, clt_win_sz):
         if m:
             t.append(datetime.strptime(m.group(0), "%Y%m%d")) # convert to datetime object
 
-        print(i, g)
         # read the SAR image and extract relevant metadata
         d[i], rho_r, rho_a, theta = readfile(g, sub_im, cr)
 
