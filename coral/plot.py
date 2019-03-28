@@ -49,7 +49,7 @@ def plot_mean_intensity(avgI, cr_pos, targ_win_sz, clt_win_sz, name):
     ax1.set_title('Mean intensity at %s' % name)
 
     # x-axis labels at bottom
-    ax1.xaxis.set_tick_params(labeltop='off', labelbottom='on')
+    ax1.xaxis.set_tick_params(labeltop='False', labelbottom='True')
 
     # fit subplots and save fig
     fig.tight_layout()

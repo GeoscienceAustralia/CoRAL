@@ -3,11 +3,11 @@ This python module contains functions for calculating the response of
 corner reflectors or other targets in Synthetic Aperture Radar images
 """
 import re
-#from matplotlib import pyplot as plt
 import numpy as np
 from datetime import datetime
 from decimal import Decimal as D
 import sys, os, os.path
+from coral.dataio import readfile
 
 
 def loop(files, sub_im, cr, targ_win_sz, clt_win_sz):
@@ -22,19 +22,13 @@ def loop(files, sub_im, cr, targ_win_sz, clt_win_sz):
         if m:
             t.append(datetime.strptime(m.group(0), "%Y%m%d")) # convert to datetime object
 
-        print(i, g, g+'.par')
-        # read GAMMA 'par' file
-        par = readpar(g + '.par')
-
-        # open GAMMA float file and read subset of image
-        d[i] = readmli(g, par, sub_im, cr)
+        print(i, g)
+        # read the SAR image and extract relevant metadata
+        d[i], rho_r, rho_a, theta = readfile(g, sub_im, cr)
 
     # calculate mean Intensity image
     avgI = 10*np.log10(np.mean(d, axis=0))
 
-    #print("Incidence angle is:",par['incidence_angle'].split()[0])
-    #print("range_pixel_spacing is:",par['range_pixel_spacing'].split()[0])
-    #print("azimuth_pixel_spacing is:",par['azimuth_pixel_spacing'].split()[0])
     cr_pos = np.array([sub_im, sub_im])
 
     # calculate target energy
@@ -46,10 +40,6 @@ def loop(files, sub_im, cr, targ_win_sz, clt_win_sz):
     #
     Ecr = calc_total_energy(Ncr, Nclt, Eclt, En)
     scr = calc_scr(Ecr, Eclt, Nclt)
-
-    rho_r = float(par['range_pixel_spacing'].split()[0])
-    rho_a = float(par['azimuth_pixel_spacing'].split()[0])
-    theta = float(par['incidence_angle'].split()[0])
 
     rcs = calc_rcs(Ecr, rho_r, rho_a, theta)
 
@@ -149,35 +139,5 @@ def calc_rcs(Ecr, rho_r, rho_a, theta):
 
     #print("target RCS is:",rcs_db,"dBsm")
     return rcs_db
-
-
-################################
-def readpar(file):
-    """Function to read a GAMMA 'par' file into a dictionary"""
-    par={}
-    with open(file) as f:
-        for line in f:
-            if "Gamma" or " " in line:
-                break # ignore header line
-        for line in f:
-            line=line.rstrip() # remove blank lines and whitespace
-            if line and not "title" in line:
-                (key, val) = line.split(":")
-                par[str(key)] = val
-    return par
-
-################################
-def readmli(datafile, par, sub_im, cr):
-    """Function to read a GAMMA mli file and provide a subsetted image"""
-    ct = int(par['range_samples']) * int(par['azimuth_lines'])
-
-    dt = np.dtype('>f4') # GAMMA files are big endian 32 bit float
-
-    d = np.fromfile(datafile, dtype=dt, count=ct)
-
-    d = d.reshape(int(par['azimuth_lines']), int(par['range_samples']))
-    #print("Number of elements and size of the array is",d.size, d.shape)
-    #d[d==0]= np.nan # convert zeros to nan
-    return d[cr[1]-sub_im:cr[1]+sub_im,cr[0]-sub_im:cr[0]+sub_im]
 
 

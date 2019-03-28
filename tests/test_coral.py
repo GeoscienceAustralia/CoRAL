@@ -5,7 +5,7 @@ import unittest, glob
 import os.path
 import numpy as np
 from coral.corner_reflector import *
-
+from coral.dataio import readpar, readmli
 
 class TestCoral(unittest.TestCase):
     @classmethod
