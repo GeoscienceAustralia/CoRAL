@@ -7,9 +7,10 @@ CoRAL is a library of tools for analysing the response of corner reflectors (or 
 
 ### Dependencies
 
-This package requires the following non-standard Python modules installed:
+This package requires the following:
 
 ```
+Python==3.6
 NumPy
 Matplotlib
 Rasterio
