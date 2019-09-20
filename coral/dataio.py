@@ -3,7 +3,7 @@ This python module contains functions for reading Synthetic Aperture
 Radar images
 """
 import numpy as np
-import rasterio
+import rasterio as rio
 from rasterio.windows import Window
 import os
 
@@ -16,7 +16,12 @@ def readfile(file, sub_im, cr):
     if ext == '.tif':
         print('Reading tiff image:', file)
         par = readpar(root + '.mli.par')
-        data = readtiff(file, sub_im, cr)
+        data = readimg(file, sub_im, cr)
+
+    elif ext == '.img':
+        print('Reading ENVI image:', file)
+        #par = readhdr(root + '.hdr')
+        data = readimg(file, sub_im, cr)
 
     else: # must be GAMMA flat binary float format
         print('Reading flat binary image', file)
@@ -60,10 +65,10 @@ def readmli(datafile, par, sub_im, cr):
     return d[cr[1]-sub_im:cr[1]+sub_im,cr[0]-sub_im:cr[0]+sub_im]
 
 
-def readtiff(datafile, sub_im, cr):
-    """Function to read a tiff and provide a subsetted image"""
+def readimg(datafile, sub_im, cr):
+    """Function to read a file and provide a subsetted image"""
 
-    with rasterio.open(datafile) as src:
+    with rio.open(datafile) as src:
         d = src.read(1, window=Window(cr[0]-sub_im, cr[1]-sub_im, sub_im*2, sub_im*2))
 
     #print("Number of elements and size of the array is",d.size, d.shape)
