@@ -30,19 +30,38 @@ def loop(files, sub_im, cr, targ_win_sz, clt_win_sz):
 
     cr_pos = np.array([sub_im, sub_im])
 
+
+    # find location of pixel with highest intensity inside target window
+    # calculate target window bounds
+    xmin_t = int(np.ceil(cr_pos[0] - targ_win_sz / 2))
+    xmax_t = int(np.floor(cr_pos[0] + targ_win_sz / 2 + 1))
+    ymin_t = int(np.ceil(cr_pos[1] - targ_win_sz / 2))
+    ymax_t = int(np.floor(cr_pos[1] + targ_win_sz / 2 + 1))
+    # crop mean intensity matrix to target window size
+    avgI_t = avgI[ymin_t:ymax_t, xmin_t:xmax_t]
+    # find matrix position of maximum mean intesity
+    max_ix = np.unravel_index(np.argmax(avgI_t, axis=None), avgI_t.shape)
+    # calculate shift w.r.t. central pixel
+    centre_ix =  (targ_win_sz - 1) / 2
+    shift = np.array([max_ix[1] - centre_ix, max_ix[0] - centre_ix], dtype=int)
+    # updated cr position
+    cr_new = cr + shift
+    # also update cr_pos accordingly
+    cr_pos = cr_pos + shift
+
+
     # calculate target energy
     En, Ncr = calc_integrated_energy(d, cr_pos, targ_win_sz)
     # calculate clutter energy for window centred in same spot as target window
     E1, N1 = calc_integrated_energy(d, cr_pos, clt_win_sz)
     # calculate average clutter
     Avg_clt, Eclt, Nclt = calc_clutter_intensity(En, E1, Ncr, N1)
-    #
+    # Calculate total energy, signal-to-clutter ratio and radar cross section
     Ecr = calc_total_energy(Ncr, Nclt, Eclt, En)
     scr = calc_scr(Ecr, Eclt, Nclt)
-
     rcs = calc_rcs(Ecr, rho_r, rho_a, theta)
 
-    return avgI, rcs, scr, Avg_clt, t
+    return avgI, rcs, scr, Avg_clt, t, cr_new, cr_pos
 
 
 def get_win_bounds(pos, winsz):
