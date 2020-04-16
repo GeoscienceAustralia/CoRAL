@@ -132,7 +132,7 @@ class TestLoop(unittest.TestCase):
 
     def test_loop(self):
         '''test the calculation loop function'''
-        avgI, rcs, scr, Avg_clt, t = loop(self.files, self.sub_im, self.cr, self.targ_win_sz, self.clt_win_sz)
+        avgI, rcs, scr, Avg_clt, t, cr_new, cr_pos = loop(self.files, self.sub_im, self.cr, self.targ_win_sz, self.clt_win_sz)
 
         # test the mean value of the average intensity image
         self.assertEqual(round(np.mean(avgI), 6), -11.385613) # -11.385613198856245
@@ -153,7 +153,7 @@ class TestTiff(unittest.TestCase):
 
     def test_loop(self):
         '''test the calculation loop function'''
-        avgI, rcs, scr, Avg_clt, t = loop(self.files, self.sub_im, self.cr, self.targ_win_sz, self.clt_win_sz)
+        avgI, rcs, scr, Avg_clt, t, cr_new, cr_pos = loop(self.files, self.sub_im, self.cr, self.targ_win_sz, self.clt_win_sz)
 
         # test the mean value of the average intensity image
         self.assertEqual(round(np.mean(avgI), 6), -11.385613) # -11.385613198856245

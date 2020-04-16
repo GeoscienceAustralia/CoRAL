@@ -69,3 +69,58 @@ def readtiff(datafile, sub_im, cr):
     #print("Number of elements and size of the array is",d.size, d.shape)
     #d[d==0]= np.nan # convert zeros to nan
     return d
+    
+
+def read_radar_coords(filename):
+    print("Reading textfile with CR positions...")
+    site = []
+    az = []
+    rg = []
+    if os.path.isfile(filename) and os.access(filename, os.R_OK):
+        print("File", filename, "exists and is readable.")
+        f = open(filename)
+        lines = f.readlines()
+        idx = 0
+        for line in lines:
+            # get site name
+            line = line.strip("\n")
+            site.append(line.split("\t")[0])
+            az.append(line.split("\t")[6])
+            rg.append(line.split("\t")[7])
+            idx = idx + 1
+        print("Radar coordinates at %d sites read" % (idx))
+    else:
+        print("ERROR: Can't read file", filename)
+        sys.exit()
+    print()
+    return site, az, rg
+    
+    
+def write_radar_coords(filename_init, filename, sites, geom):
+    print("Writing new CR positions to textfile...")
+    fout = open(filename,'w')
+    if os.path.isfile(filename_init) and os.access(filename_init, os.R_OK):
+        print("File", filename_init, "exists and is readable.")
+        f = open(filename_init)
+        lines = f.readlines()
+        for line in lines:
+            # get site name
+            name = line.split("\t")[0]
+            cr = sites[name]
+            temp = line.split("\t")[:-2]
+            temp2 = "\t".join(temp)
+            if geom == "asc":
+                out_line = temp2 + "\t" + str(cr[0][1]) + \
+                       "\t" + str(cr[0][0]) + "\n"
+            if geom == "desc":
+                out_line = temp2 + "\t" + str(cr[1][1]) + \
+                       "\t" + str(cr[1][0]) + "\n"           
+            fout.write(out_line)
+    else:
+        print("ERROR: Can't read file", filename_init)
+        sys.exit()
+    print()
+    print("Azimuth and Range number of CR pixels has been written to " + \
+    filename + ".")
+    print()
+    return

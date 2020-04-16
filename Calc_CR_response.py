@@ -39,9 +39,7 @@ clt_win_sz = 9
 for name, cr in sites.items():
     print(name,'is desc',cr[0])
 
-    avgI, rcs, scr, Avg_clt, t = loop(files, sub_im, cr[0], targ_win_sz, clt_win_sz)
-
-    cr_pos = np.array([sub_im, sub_im])
+    avgI, rcs, scr, Avg_clt, t, cr_new, cr_pos = loop(files, sub_im, cr[0], targ_win_sz, clt_win_sz)
 
     # Plot mean intensity image
     plot_mean_intensity(avgI, cr_pos, targ_win_sz, clt_win_sz, name)
@@ -50,6 +48,6 @@ for name, cr in sites.items():
     plot_rcs_scr(t, rcs, scr, start, end, name)
 
     # Plot average clutter time series
-    plot_clutter(t, Avg_clt, start, end, name)
+    plot_clutter(t, Avg_clt, start, end, name, "Descending")
 
 
