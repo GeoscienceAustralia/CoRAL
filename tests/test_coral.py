@@ -5,7 +5,7 @@ import unittest, glob
 import os.path
 import numpy as np
 from coral.corner_reflector import *
-from coral.dataio import readpar, readmli
+from coral.dataio import readpar, readmli, read_radar_coords, write_radar_coords
 
 class TestCoral(unittest.TestCase):
     @classmethod
@@ -157,6 +157,59 @@ class TestTiff(unittest.TestCase):
 
         # test the mean value of the average intensity image
         self.assertEqual(round(np.mean(avgI), 6), -11.385613) # -11.385613198856245
+        
+        
+class TestShift(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.files = []
+        for file in glob.glob("data/*.mli"):
+            cls.files.append(file)
+
+        cls.files.sort()
+        cls.sub_im = 51
+        cls.targ_win_sz = 5
+        cls.clt_win_sz = 9
+        cls.cr = [ 86, 111] # coordinates changed to check shift
+
+    def test_loop(self):
+        '''test the coordinate shift'''
+        avgI, rcs, scr, Avg_clt, t, cr_new, cr_pos = loop(self.files, self.sub_im, self.cr, self.targ_win_sz, self.clt_win_sz)
+
+        # test array containing values of shift to be applied to radar coordinates
+        self.assertEqual(cr_pos[0], 52)  
+        self.assertEqual(cr_pos[1], 50)         
+
+        
+class TestCRfiles(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.file_in1 = "data/site_az_rg.txt"
+        cls.file_in2 = "data/site_lat_lon_hgt_date1_date2_az_rg.txt"
+        cls.file_out1 = "data/site_az_rg_new.txt"
+        cls.file_out2 = "data/site_lat_lon_hgt_date1_date2_az_rg_new.txt"
+        cls.sites = {'SERF' : np.array([[-999, -999],[ 87, 110]])}  
+        cls.geom = "desc"
+    
+    def test_cr_file(self):           
+        '''test the calculation loop function'''
+        # open reduced CR coordinate file
+        site, az, rg = read_radar_coords(self.file_in1)
+        self.assertEqual(int(rg[0]), 87)
+        self.assertEqual(int(az[0]), 110)
+        # write to new file
+        write_radar_coords(self.file_in1, self.file_out1, self.sites, self.geom)
+        assert os.path.exists(self.file_out1) == 1
+        os.remove(self.file_out1)
+        
+        # open full CR coordinate file
+        site, az, rg = read_radar_coords(self.file_in2)
+        self.assertEqual(int(rg[0]), 87)
+        self.assertEqual(int(az[0]), 110)
+        # write to new file
+        write_radar_coords(self.file_in2, self.file_out2, self.sites, self.geom)
+        assert os.path.exists(self.file_out2) == 1
+        os.remove(self.file_out2)
 
 
 if __name__ == '__main__':
