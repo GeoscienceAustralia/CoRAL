@@ -5,7 +5,7 @@ Radar images
 import numpy as np
 import rasterio
 from rasterio.windows import Window
-import os
+import sys, os
 
 
 def readfile(file, sub_im, cr):
@@ -85,10 +85,11 @@ def read_radar_coords(filename):
             # get site name
             line = line.strip("\n")
             site.append(line.split("\t")[0])
-            az.append(line.split("\t")[6])
-            rg.append(line.split("\t")[7])
-            idx = idx + 1
+            az.append(line.split("\t")[-2])
+            rg.append(line.split("\t")[-1])
+            idx = idx + 1  
         print("Radar coordinates at %d sites read" % (idx))
+        f.close()
     else:
         print("ERROR: Can't read file", filename)
         sys.exit()
@@ -116,6 +117,8 @@ def write_radar_coords(filename_init, filename, sites, geom):
                 out_line = temp2 + "\t" + str(cr[1][1]) + \
                        "\t" + str(cr[1][0]) + "\n"           
             fout.write(out_line)
+        f.close()
+        fout.close()    
     else:
         print("ERROR: Can't read file", filename_init)
         sys.exit()
