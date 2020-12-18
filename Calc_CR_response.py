@@ -2,9 +2,11 @@
 Ths is the main python script for running CoRAL analysis
 
 Example command line usage: python3 Calc_CR_response_config.py /path/to/config_file
+
 An example for the config_file is here: ./data/coral_serf.conf
 An example for the input file list is here: ./data/mli_desc.list
 An example for the file containing target coordinates is here: ./data/site_lat_lon_hgt_date1_date2_az_rg_initial.txt
+Test run: python3 Calc_CR_response.py ./data/coral_serf.conf
 
 required packages to be installed (on Gadi):
 # pip install --user joblib
