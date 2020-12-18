@@ -185,9 +185,9 @@ class TestCRfiles(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.file_in1 = "data/site_az_rg.txt"
-        cls.file_in2 = "data/site_lat_lon_hgt_date1_date2_az_rg.txt"
+        cls.file_in2 = "data/site_lon_lat_hgt_date1_date2_az_rg.txt"
         cls.file_out1 = "data/site_az_rg_new.txt"
-        cls.file_out2 = "data/site_lat_lon_hgt_date1_date2_az_rg_new.txt"
+        cls.file_out2 = "data/site_lon_lat_hgt_date1_date2_az_rg_new.txt"
         cls.sites = {'SERF' : np.array([[-999, -999],[ 87, 110]])}  
         cls.geom = "desc"
     
