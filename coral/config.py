@@ -1,6 +1,6 @@
 """
-This Python module contains utilities to parse CoRAL configuration
-files.
+This Python module contains utilities to parse CoRAL configuration files.
+Most of this code is copied from PyRate (see https://github.com/GeoscienceAustralia/PyRate)
 """
 from typing import Dict
 import os
@@ -47,9 +47,6 @@ def get_config_params(path: str) -> Dict:
 
     Args:
         path: Absolute path to the parameters file.
-        validate: Validate the parameters if True, otherwise skip validation.
-        step: The current step of the PyRate workflow.
-
     Returns:
        A dictionary of parameters.
     """
@@ -93,12 +90,6 @@ def _parse_conf_file(content) -> Dict:
     for p in PATHS:
         if p not in parameters:
             parameters[p] = None
-
-    for p in INT_KEYS:
-        if p not in parameters:
-            parameters[p] = '0'  # insert dummies
-
-    parameters = _handle_extra_parameters(parameters)
 
     if not parameters:
         raise ConfigException('Cannot parse any parameters from config file')

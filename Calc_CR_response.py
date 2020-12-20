@@ -22,25 +22,6 @@ from joblib import Parallel, delayed
 import multiprocessing
 import sys, os, os.path
 from coral import config as cf
-from configparser import ConfigParser
-
-
-class Configuration:
-    def __init__(self, config_file_path):
-        parser = ConfigParser()
-        parser.optionxform = str
-        # mimic header to fulfil the requirement for configparser
-        with open(config_file_path) as stream:
-            parser.read_string("[root]\n" + stream.read())
-
-        for key, value in parser["root"].items():
-            self.__dict__[key] = value
-
-def _params_from_conf(config_file):
-    config_file = os.path.abspath(config_file)
-    config = Configuration(config_file)
-    params = config.__dict__
-    return params
 
 
 print('')
@@ -53,8 +34,8 @@ else:
     config_file = sys.argv[1]
     print(f'Looking for CoRAL input data defined in {config_file}')
 
-
-params = _params_from_conf(config_file)
+# read config-file parameters and convert to required data type
+params = cf.get_config_params(config_file)
 
 print(f'Results will be saved into {params[cf.OUT_DIR]}')
 # Start the processing
@@ -123,9 +104,9 @@ def processInput(name):
     cr = sites[name]
 
     if params[cf.ASC_LIST]:
-        avgI_a, rcs_a, scr_a, clt_a, t_a, cr_new_a, cr_pos_a = loop(files_a, int(params[cf.SUB_IM]), cr[0], int(params[cf.TARG_WIN_SZ]), int(params[cf.CLT_WIN_SZ]))
+        avgI_a, rcs_a, scr_a, clt_a, t_a, cr_new_a, cr_pos_a = loop(files_a, params[cf.SUB_IM], cr[0], params[cf.TARG_WIN_SZ], params[cf.CLT_WIN_SZ])
     if params[cf.DESC_LIST]:
-        avgI_d, rcs_d, scr_d, clt_d, t_d, cr_new_d, cr_pos_d = loop(files_d, int(params[cf.SUB_IM]), cr[1], int(params[cf.TARG_WIN_SZ]), int(params[cf.CLT_WIN_SZ]))
+        avgI_d, rcs_d, scr_d, clt_d, t_d, cr_new_d, cr_pos_d = loop(files_d, params[cf.SUB_IM], cr[1], params[cf.TARG_WIN_SZ], params[cf.CLT_WIN_SZ])
 
     if params[cf.ASC_LIST] and params[cf.DESC_LIST]:
         return name, cr_pos_a, avgI_a, rcs_a, scr_a, clt_a, t_a, cr_new_a, \
@@ -180,7 +161,7 @@ for i in range(0, len(names)):
         # Visualisation
         print('Site %s' % name)
         # Plot mean intensity image
-        plot_mean_intensity2(avgI_a, avgI_d, cr_pos_a, cr_pos_d, int(params[cf.TARG_WIN_SZ]), int(params[cf.CLT_WIN_SZ]), name, params[cf.OUT_DIR])
+        plot_mean_intensity2(avgI_a, avgI_d, cr_pos_a, cr_pos_d, params[cf.TARG_WIN_SZ], params[cf.CLT_WIN_SZ], name, params[cf.OUT_DIR])
          
         # extract start and end date
         start_time = min(t_a[0], t_d[0])
@@ -234,7 +215,7 @@ for i in range(0, len(names)):
         # Visualisation
         print('Site %s' % name)
         # Plot mean intensity image
-        plot_mean_intensity(avgI, cr_pos, int(params[cf.TARG_WIN_SZ]), int(params[cf.CLT_WIN_SZ]), name, params[cf.OUT_DIR])
+        plot_mean_intensity(avgI, cr_pos, params[cf.TARG_WIN_SZ], params[cf.CLT_WIN_SZ], name, params[cf.OUT_DIR])
         
         # extract start and end date
         start_time = t[0]
