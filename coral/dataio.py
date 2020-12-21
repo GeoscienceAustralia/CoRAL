@@ -6,7 +6,6 @@ import numpy as np
 import rasterio as rio
 from rasterio.windows import Window
 import sys, os
-from coral import config as cf
 from coral.plot import *
 from coral.plot2 import *
 

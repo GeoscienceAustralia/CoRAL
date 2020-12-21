@@ -27,7 +27,6 @@ YMAX_CLUTTER = 'ymax_clutter'
 
 # Lookup to help convert args to correct type/defaults
 # format is	key : (conversion, default value)
-# None = no conversion
 PARAM_CONVERSION = {
     TARG_WIN_SZ: (int, 3),
     CLT_WIN_SZ: (int, 7),
@@ -39,6 +38,7 @@ PARAM_CONVERSION = {
     YMAX_CLUTTER: (float, -2),
 }
 
+# path variables
 PATHS = [
     ASC_LIST,
     DESC_LIST,
@@ -52,13 +52,10 @@ PATHS = [
 
 def get_config_params(path: str) -> Dict:
     """
-    Reads the parameters file provided by the user and converts it into
-    a dictionary.
+    Reads the parameters file provided by the user and converts it into a dictionary.
 
-    Args:
-        path: Absolute path to the parameters file.
-    Returns:
-       A dictionary of parameters.
+    :param str path: path to config file
+    :return: dict params: config parameters
     """
     txt = ''
     with open(path, 'r') as inputFile:
@@ -78,11 +75,8 @@ def _parse_conf_file(content) -> Dict:
     """
     Converts the parameters from their text form into a dictionary.
 
-    Args:
-        content: Parameters as text.
-
-    Returns:
-        A dictionary of parameters.
+    :param str content: Parameters as text
+    :return: dict params: config parameters
     """
 
     def _is_valid(line):
@@ -113,11 +107,8 @@ def _parse_pars(pars) -> Dict:
     Takes dictionary of parameters, converting values to required type
     and providing defaults for missing values.
 
-    Args:
-        pars: Parameters dictionary.
-
-    Returns:
-        Dictionary of converted (and optionally validated) parameters.
+    :param dict pars: config parameters (as strings)
+    :return: dict params: converted config parameters (according to PARAM_CONVERSION lookup table)
     """
     # Fallback to default for missing values and perform conversion.
     for k in PARAM_CONVERSION:
