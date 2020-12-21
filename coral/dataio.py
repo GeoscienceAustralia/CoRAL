@@ -6,6 +6,84 @@ import numpy as np
 import rasterio as rio
 from rasterio.windows import Window
 import sys, os
+from coral import config as cf
+
+
+def read_input_files(params):
+    """
+    Reads input files and performs checks on existence
+
+    :param dict params: config parameters
+    :return: list files_a: containing paths to asc backscatter files (none if not given)
+    :return: list files_d: containing paths to desc backscatter files (none if not given)
+    :return: dict sites: containing radar target sites and array with range and azimuth coordinates
+                         (-999 is used for non-existent geometry if applicable)
+    """
+    # if no datapath is given in the config file, this geometry is not used
+    # read asc pass data files
+    if params[cf.ASC_LIST]:
+        if not os.path.exists(params[cf.ASC_LIST]):
+            raise Exception(f'{params[cf.ASC_LIST]} does not exist')
+        else:
+            print(f'Reading data from file list {params[cf.ASC_LIST]}')
+            # read the paths to ascending-pass backscatter images
+            with open(params[cf.ASC_LIST]) as f_in:
+                files_a = [line.rstrip() for line in f_in]
+                files_a.sort()
+        # read the ascending-pass radar coordinates of targets
+        if not os.path.exists(params[cf.ASC_CR_FILE_ORIG]):
+            raise Exception(f'{params[cf.ASC_CR_FILE_ORIG]} does not exist')
+        else:
+            print('')
+            sites_a, az_a, rg_a = read_radar_coords(filename)
+    # set files variable to None if no asc file list supplied
+    else:
+        print('No ascending-pass file list supplied')
+        files_a = None
+    # read desc pass data files
+    if params[cf.DESC_LIST]:
+        if not os.path.exists(params[cf.DESC_LIST]):
+            raise Exception(f'{params[cf.DESC_LIST]} does not exist')
+        else:
+            print(f'Reading data from file list {params[cf.DESC_LIST]}')
+            # read the paths to descending-pass backscatter images
+            with open(params[cf.DESC_LIST]) as f_in:
+                files_d = [line.rstrip() for line in f_in]
+                files_d.sort()
+        # read the descending-pass radar coordinates of targets
+        filename = params[cf.DESC_CR_FILE_ORIG]
+        if not os.path.exists(params[cf.DESC_CR_FILE_ORIG]):
+            raise Exception(f'{params[cf.DESC_CR_FILE_ORIG]} does not exist')
+        else:
+            print('')
+            sites_d, az_d, rg_d = read_radar_coords(filename)
+    # set files variable to None if no desc file list supplied
+    else:
+        print('No descending-pass file list supplied')
+        files_d = None
+
+    # check if CR files have the same length
+    if files_a and files_d:
+        if sites_a == sites_d:
+            print("CR files for asc and desc tracks contain same set of sites.")
+            keys = sites_a
+            values = (np.array([[rg_a[i], az_a[i]], [rg_d[i], az_d[i]]], dtype=int) \
+                      for i in range(0, len(sites_a)))
+        else:
+            print("ERROR: different CR sites given for asc and desc track.")
+            sys.exit()
+        print(' ')
+    elif files_a and not files_d:
+        keys = sites_a
+        values = (np.array([[rg_a[i], az_a[i]], [-999, -999]], dtype=int) \
+                  for i in range(0, len(sites_a)))
+    elif files_d and not files_a:
+        keys = sites_d
+        values = (np.array([[-999, -999], [rg_d[i], az_d[i]]], dtype=int) \
+                  for i in range(0, len(sites_d)))
+    sites = dict(zip(keys, values))
+
+    return files_a, files_d, sites
 
 
 def readfile(file, sub_im, cr):
@@ -132,3 +210,7 @@ def write_radar_coords(filename_init, filename, sites, geom):
     filename + ".")
     print()
     return
+
+
+class Exception(Exception):
+    """IO generic exception class"""

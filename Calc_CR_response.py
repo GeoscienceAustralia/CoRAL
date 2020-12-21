@@ -15,15 +15,16 @@ required packages to be installed (on Gadi):
 import numpy as np
 from datetime import datetime
 from coral.corner_reflector import loop
-from coral.dataio import read_radar_coords, write_radar_coords
+from coral.dataio import read_input_files, write_radar_coords
 from coral.plot import *
 from coral.plot2 import *
 from joblib import Parallel, delayed
 import multiprocessing
-import sys, os, os.path
+import sys, os.path
 from coral import config as cf
 
 
+# check if config-file has been given as an argument of the main script call
 print('')
 if len(sys.argv) != 2:
     print('Exiting: Provide path to config-file as command line argument')
@@ -34,9 +35,11 @@ else:
     config_file = sys.argv[1]
     print(f'Looking for CoRAL input data defined in {config_file}')
 
-# read config-file parameters and convert to required data type
+# read config-file and convert parameters to required data type
 params = cf.get_config_params(config_file)
 
+
+# General screen output
 print(f'Results will be saved into {params[cf.OUT_DIR]}')
 # Start the processing
 print(' ')
@@ -45,54 +48,8 @@ print(' ')
 # used to calculate runtime
 run_start = datetime.now()
 
-
-# if no datapath is given in the config file, this geometry is not used
-if params[cf.ASC_LIST]:
-    print(f'Reading data from file list {params[cf.ASC_LIST]}')
-    # read the paths to ascending-pass backscatter images
-    with open(params[cf.ASC_LIST]) as f_in:
-        files_a = [line.rstrip() for line in f_in]
-        files_a.sort()
-    # read the ascending-pass radar coordinates of targets
-    filename = params[cf.ASC_CR_FILE_ORIG]
-    sites_a, az_a, rg_a = read_radar_coords(filename)
-else:
-    print('No ascending-pass file list supplied')
-    # read asc pass data files
-if params[cf.DESC_LIST]:
-    print(f'Reading data from file list {params[cf.DESC_LIST]}')
-    # read the paths to descending-pass backscatter images
-    with open(params[cf.DESC_LIST]) as f_in:
-        files_d = [line.rstrip() for line in f_in]
-        files_d.sort()
-    # read the descending-pass radar coordinates of targets
-    filename = params[cf.DESC_CR_FILE_ORIG]
-    sites_d, az_d, rg_d = read_radar_coords(filename)
-else:
-    print('No descending-pass file list supplied')
-
-
-# check if CR files have the same length
-if params[cf.ASC_LIST] and params[cf.DESC_LIST]:
-    if sites_a == sites_d:
-        print("CR files for asc and desc tracks contain same set of sites.")
-        keys = sites_a
-        values = (np.array([[rg_a[i], az_a[i]],[rg_d[i], az_d[i]]], dtype=int) \
-                 for i in range(0, len(sites_a)))
-    else:
-        print("ERROR: different CR sites given for asc and desc track.")
-        sys.exit()
-    print(' ')    
-elif params[cf.ASC_LIST] and not params[cf.DESC_LIST]:
-    keys = sites_a
-    values = (np.array([[rg_a[i], az_a[i]],[-999, -999]], dtype=int) \
-             for i in range(0, len(sites_a)))
-elif params[cf.DESC_LIST] and not params[cf.ASC_LIST]:
-    keys = sites_d
-    values = (np.array([[-999, -999],[rg_d[i], az_d[i]]], dtype=int) \
-             for i in range(0, len(sites_d)))
-
-sites = dict(zip(keys, values))
+# check and read paths to input data
+files_a, files_d, sites = read_input_files(params)
 
 
 ##################################
@@ -103,17 +60,17 @@ def processInput(name):
 
     cr = sites[name]
 
-    if params[cf.ASC_LIST]:
+    if files_a:
         avgI_a, rcs_a, scr_a, clt_a, t_a, cr_new_a, cr_pos_a = loop(files_a, params[cf.SUB_IM], cr[0], params[cf.TARG_WIN_SZ], params[cf.CLT_WIN_SZ])
-    if params[cf.DESC_LIST]:
+    if files_d:
         avgI_d, rcs_d, scr_d, clt_d, t_d, cr_new_d, cr_pos_d = loop(files_d, params[cf.SUB_IM], cr[1], params[cf.TARG_WIN_SZ], params[cf.CLT_WIN_SZ])
 
-    if params[cf.ASC_LIST] and params[cf.DESC_LIST]:
+    if files_a and files_d:
         return name, cr_pos_a, avgI_a, rcs_a, scr_a, clt_a, t_a, cr_new_a, \
                cr_pos_d, avgI_d, rcs_d, scr_d, clt_d, t_d, cr_new_d
-    elif params[cf.ASC_LIST] and not params[cf.DESC_LIST]:
+    elif files_a and not files_d:
         return name, cr_pos_a, avgI_a, rcs_a, scr_a, clt_a, t_a, cr_new_a
-    elif params[cf.DESC_LIST] and not params[cf.ASC_LIST]:
+    elif files_d and not files_a:
         return name, cr_pos_d, avgI_d, rcs_d, scr_d, clt_d, t_d, cr_new_d
 
 
@@ -125,7 +82,6 @@ results = Parallel(n_jobs=16)(delayed(processInput)(name) for name in names)
 
 
 # extract results and plot images
-
 # create output dir if it doesn't exist
 if not os.path.exists(params[cf.OUT_DIR]):
     os.makedirs(params[cf.OUT_DIR])
@@ -136,7 +92,7 @@ print(' ')
 for i in range(0, len(names)):
     
     # ascending and descending CRs in one plot
-    if params[cf.ASC_LIST] and params[cf.DESC_LIST]:
+    if files_a and files_d:
         # read result arrays of parallel function, both geometries
         name = results[i][0]
         cr_pos_a = results[i][1]
@@ -204,10 +160,10 @@ for i in range(0, len(names)):
         cr_new = results[i][7]
 
         # add new coords to sites dictionary
-        if params[cf.ASC_LIST]:
+        if files_a:
            geom='Ascending'
            cr = np.array([cr_new, [-999, -999]])
-        if params[cf.DESC_LIST]:
+        if files_d:
            geom='Descending'
            cr = np.array([[-999, -999], cr_new])
         sites[name] = cr
@@ -245,10 +201,10 @@ for i in range(0, len(names)):
 
 # write updated radar coordinates to a new file
 print(' ')
-if params[cf.ASC_LIST]:
+if files_a:
     # new file with updated radar coordinates of CRs
     write_radar_coords(params[cf.ASC_CR_FILE_ORIG], params[cf.ASC_CR_FILE_NEW], sites, "asc")
-if params[cf.DESC_LIST]:
+if files_d:
     # new file with updated radar coordinates of CRs
     write_radar_coords(params[cf.DESC_CR_FILE_ORIG], params[cf.DESC_CR_FILE_NEW], sites, "desc")
         
