@@ -12,16 +12,13 @@ required packages to be installed (on Gadi):
 # pip install --user joblib
 # pip install --user rasterio
 """
-import numpy as np
 from datetime import datetime
-from coral.corner_reflector import loop
-from coral.dataio import read_input_files, write_radar_coords
-from coral.plot import *
-from coral.plot2 import *
 from joblib import Parallel, delayed
 import multiprocessing
 import sys, os.path
 from coral import config as cf
+from coral.dataio import read_input_files, write_radar_coords, plot_results
+from coral.corner_reflector import loop
 
 
 # check if config-file has been given as an argument of the main script call
@@ -54,7 +51,7 @@ files_a, files_d, sites = read_input_files(params)
 
 ##################################
 # function for parallel loop processing
-names = sites.keys()
+sitenames = sites.keys()
 # note that dictionaries are unsorted and the variable name is hence not ordered
 def processInput(name):
 
@@ -78,125 +75,18 @@ def processInput(name):
 num_cores = multiprocessing.cpu_count()
 # num_cores results in 32 on the NCI which in turn results in an error
 # hence the number of 16 cores is hard-coded here
-results = Parallel(n_jobs=16)(delayed(processInput)(name) for name in names)
+results = Parallel(n_jobs=16)(delayed(processInput)(name) for name in sitenames)
 
-
-# extract results and plot images
 # create output dir if it doesn't exist
 if not os.path.exists(params[cf.OUT_DIR]):
     os.makedirs(params[cf.OUT_DIR])
 
+
+# extract results and plot images
 print(' ') 
 print('Creating output data...')
 print(' ') 
-for i in range(0, len(names)):
-    
-    # ascending and descending CRs in one plot
-    if files_a and files_d:
-        # read result arrays of parallel function, both geometries
-        name = results[i][0]
-        cr_pos_a = results[i][1]
-        avgI_a = results[i][2]
-        rcs_a = results[i][3]
-        scr_a = results[i][4]
-        clt_a = results[i][5]
-        t_a = results[i][6]
-        cr_new_a = results[i][7]
-        cr_pos_d = results[i][8]
-        avgI_d = results[i][9]
-        rcs_d = results[i][10]
-        scr_d = results[i][11]
-        clt_d = results[i][12]
-        t_d = results[i][13]
-        cr_new_d = results[i][14]
-        
-        # add new coords to sites dictionary
-        cr = np.array([cr_new_a, cr_new_d])
-        sites[name] = cr
-        
-        # Visualisation
-        print('Site %s' % name)
-        # Plot mean intensity image
-        plot_mean_intensity2(avgI_a, avgI_d, cr_pos_a, cr_pos_d, params[cf.TARG_WIN_SZ], params[cf.CLT_WIN_SZ], name, params[cf.OUT_DIR])
-         
-        # extract start and end date
-        start_time = min(t_a[0], t_d[0])
-        end_time = max(t_a[-1], t_d[-1])
-        margin = (end_time - start_time)/50
-        start = start_time - margin
-        end = end_time + margin
-        
-        # Plot average clutter time series
-        plot_clutter2(t_a, t_d, clt_a, clt_d, start, end, name, params[cf.OUT_DIR])
-        # Plot scr time series
-        plot_scr2(t_a, t_d, scr_a, scr_d, start, end, name, params[cf.OUT_DIR])
-        # Plot rcs time series
-        plot_rcs2(t_a, t_d, rcs_a, rcs_d, start, end, name, params[cf.OUT_DIR])
-        
-        # write RCS data to file
-        filename_out = params[cf.OUT_DIR] + "/rcs_values_" + name + "_" + "Ascending.txt"
-        fout = open(filename_out,'w')
-        for time, value in zip(t_a,rcs_a):
-            timestr = time.strftime("%Y%m%d")
-            fout.write("%s %f\n" % (timestr, value))
-        fout.close()
-        filename_out = params[cf.OUT_DIR] + "/rcs_values_" + name + "_" + "Descending.txt"
-        fout = open(filename_out,'w')
-        for time, value in zip(t_d,rcs_d):
-            timestr = time.strftime("%Y%m%d")
-            fout.write("%s %f\n" % (timestr, value))
-        fout.close() 
-         
-    # one geometry (ascending or descending)    
-    else:
-        # read result arrays of parallel function, one geometry
-        name = results[i][0]
-        cr_pos = results[i][1]
-        avgI = results[i][2]
-        rcs = results[i][3]
-        scr = results[i][4]
-        clt = results[i][5]
-        t = results[i][6]
-        cr_new = results[i][7]
-
-        # add new coords to sites dictionary
-        if files_a:
-           geom='Ascending'
-           cr = np.array([cr_new, [-999, -999]])
-        if files_d:
-           geom='Descending'
-           cr = np.array([[-999, -999], cr_new])
-        sites[name] = cr
-
-        # Visualisation
-        print('Site %s' % name)
-        # Plot mean intensity image
-        plot_mean_intensity(avgI, cr_pos, params[cf.TARG_WIN_SZ], params[cf.CLT_WIN_SZ], name, params[cf.OUT_DIR])
-        
-        # extract start and end date
-        start_time = t[0]
-        end_time = t[-1]
-        margin = (end_time - start_time)/50
-        start = start_time - margin
-        end = end_time + margin
-        
-        # Plot average clutter time series
-        plot_clutter(t, clt, start, end, name, geom, params[cf.OUT_DIR])
-        # Plot scr time series
-        plot_scr(t, scr, start, end, name, geom, params[cf.OUT_DIR])
-        # Plot rcs time series
-        plot_rcs(t, rcs, start, end, name, geom, params[cf.OUT_DIR])
-        # Plot RCS_SCR time series
-        plot_rcs_scr(t, rcs, scr, start, end, name, params[cf.OUT_DIR])
-
-        
-        # write RCS data to file
-        filename_out = params[cf.OUT_DIR] + "/rcs_values_" + name + "_" + geom + ".txt"
-        fout = open(filename_out,'w')
-        for time, value in zip(t,rcs):
-            timestr = time.strftime("%Y%m%d")
-            fout.write("%s %f\n" % (timestr, value))
-        fout.close()  
+plot_results(sites, results, params)
 
 
 # write updated radar coordinates to a new file
