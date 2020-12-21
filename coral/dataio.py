@@ -186,11 +186,9 @@ def plot_results(sites, results, params):
     """
     Function to plot results of radar target response analysis, also outputs RCS values to file
 
+    :param dict sites: containts site name and radar coordinates
+    :param: dict results: containing paths to asc backscatter files (none if not given)
     :param dict params: config parameters
-    :return: list files_a: containing paths to asc backscatter files (none if not given)
-    :return: list files_d: containing paths to desc backscatter files (none if not given)
-    :return: dict sites: containing radar target sites and array with range and azimuth coordinates
-                         (-999 is used for non-existent geometry if applicable)
     """
     sitenames = sites.keys()
     for i in range(0, len(sitenames)):
@@ -221,8 +219,7 @@ def plot_results(sites, results, params):
             # Visualisation
             print('Site %s' % name)
             # Plot mean intensity image
-            plot_mean_intensity2(avgI_a, avgI_d, cr_pos_a, cr_pos_d, params[cf.TARG_WIN_SZ], params[cf.CLT_WIN_SZ], name,
-                                 params[cf.OUT_DIR])
+            plot_mean_intensity2(avgI_a, avgI_d, cr_pos_a, cr_pos_d, name, params)
 
             # extract start and end date
             start_time = min(t_a[0], t_d[0])
@@ -232,11 +229,11 @@ def plot_results(sites, results, params):
             end = end_time + margin
 
             # Plot average clutter time series
-            plot_clutter2(t_a, t_d, clt_a, clt_d, start, end, name, params[cf.OUT_DIR])
+            plot_clutter2(t_a, t_d, clt_a, clt_d, start, end, name, params)
             # Plot scr time series
-            plot_scr2(t_a, t_d, scr_a, scr_d, start, end, name, params[cf.OUT_DIR])
+            plot_scr2(t_a, t_d, scr_a, scr_d, start, end, name, params)
             # Plot rcs time series
-            plot_rcs2(t_a, t_d, rcs_a, rcs_d, start, end, name, params[cf.OUT_DIR])
+            plot_rcs2(t_a, t_d, rcs_a, rcs_d, start, end, name, params)
 
             # write RCS data to file
             filename_out = params[cf.OUT_DIR] + "/rcs_values_" + name + "_" + "Ascending.txt"
@@ -276,7 +273,7 @@ def plot_results(sites, results, params):
             # Visualisation
             print('Site %s' % name)
             # Plot mean intensity image
-            plot_mean_intensity(avgI, cr_pos, params[cf.TARG_WIN_SZ], params[cf.CLT_WIN_SZ], name, params[cf.OUT_DIR])
+            plot_mean_intensity(avgI, cr_pos, name, params)
 
             # extract start and end date
             start_time = t[0]
@@ -286,13 +283,11 @@ def plot_results(sites, results, params):
             end = end_time + margin
 
             # Plot average clutter time series
-            plot_clutter(t, clt, start, end, name, geom, params[cf.OUT_DIR])
+            plot_clutter(t, clt, start, end, name, geom, params)
             # Plot scr time series
-            plot_scr(t, scr, start, end, name, geom, params[cf.OUT_DIR])
+            plot_scr(t, scr, start, end, name, geom, params)
             # Plot rcs time series
-            plot_rcs(t, rcs, start, end, name, geom, params[cf.OUT_DIR])
-            # Plot RCS_SCR time series
-            plot_rcs_scr(t, rcs, scr, start, end, name, params[cf.OUT_DIR])
+            plot_rcs(t, rcs, start, end, name, geom, params)
 
             # write RCS data to file
             filename_out = params[cf.OUT_DIR] + "/rcs_values_" + name + "_" + geom + ".txt"

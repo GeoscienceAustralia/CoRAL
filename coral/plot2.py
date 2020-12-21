@@ -5,11 +5,11 @@ import matplotlib
 matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 from matplotlib.patches import RegularPolygon
-from matplotlib.colors import LogNorm
 import numpy as np
+from coral import config as cf
 
 
-def plot_mean_intensity2(avgI_a, avgI_d, cr_pos_a, cr_pos_d, targ_win_sz, clt_win_sz, name, path_out="./"):
+def plot_mean_intensity2(avgI_a, avgI_d, cr_pos_a, cr_pos_d, name, params):
     '''Plot image of mean SAR intensity'''
     # set black/white colormap for plots
     cmap = plt.set_cmap('gist_gray')
@@ -21,19 +21,19 @@ def plot_mean_intensity2(avgI_a, avgI_d, cr_pos_a, cr_pos_d, targ_win_sz, clt_wi
     im2 = ax2.matshow(avgI_a, vmin=-20, vmax=10, cmap=cmap)
 
     # define target window
-    p1 = RegularPolygon(cr_pos_d, 4, (targ_win_sz/2)+2, \
+    p1 = RegularPolygon(cr_pos_d, 4, (params[cf.TARG_WIN_SZ]/2)+2, \
                         orientation = np.pi / 4, linewidth=1, \
                         edgecolor='r',facecolor='none')
     # define clutter window
-    p2 = RegularPolygon(cr_pos_d, 4, (clt_win_sz/2)+3, \
+    p2 = RegularPolygon(cr_pos_d, 4, (params[cf.CLT_WIN_SZ]/2)+3, \
                         orientation = np.pi / 4, linewidth=1, \
                         edgecolor='y',facecolor='none')
     # define target window
-    p3 = RegularPolygon(cr_pos_a, 4, (targ_win_sz/2)+2, \
+    p3 = RegularPolygon(cr_pos_a, 4, (params[cf.TARG_WIN_SZ]/2)+2, \
                         orientation = np.pi / 4, linewidth=1, \
                         edgecolor='r',facecolor='none')
     # define clutter window
-    p4 = RegularPolygon(cr_pos_a, 4, (clt_win_sz/2)+3, \
+    p4 = RegularPolygon(cr_pos_a, 4, (params[cf.CLT_WIN_SZ]/2)+3, \
                         orientation = np.pi / 4, linewidth=1, \
                         edgecolor='y',facecolor='none')
     # add windows to plot
@@ -61,7 +61,7 @@ def plot_mean_intensity2(avgI_a, avgI_d, cr_pos_a, cr_pos_d, targ_win_sz, clt_wi
     ax2.xaxis.set_tick_params(labeltop='off', labelbottom='on')
 
     # save PNG file
-    filename = path_out + "/mean_intensity_" + name + ".png"
+    filename = params[cf.OUT_DIR] + "/mean_intensity_" + name + ".png"
     fig.savefig(filename, dpi=300, bbox_inches='tight')
     
     # avoid "RuntimeWarning: More than 20 figures have been opened"
@@ -71,14 +71,14 @@ def plot_mean_intensity2(avgI_a, avgI_d, cr_pos_a, cr_pos_d, targ_win_sz, clt_wi
     return
 
 
-def plot_clutter2(t_a, t_d, clt_a, clt_d, start, end, name, path_out="./"):
+def plot_clutter2(t_a, t_d, clt_a, clt_d, start, end, name, params):
     '''Plot average clutter time series'''
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
     plt.plot(t_a, clt_a, 'ro-', label='Asc')
     plt.plot(t_d, clt_d, 'bo-', label='Desc')
     plt.xlim(start, end)
-    plt.ylim(-16, -2)
+    plt.ylim(params[cf.YMIN_CLUTTER], params[cf.YMAX_CLUTTER])
     plt.xlabel('Date')
     plt.ylabel('Average Clutter (dB)')
     plt.legend(loc=1)
@@ -98,14 +98,14 @@ def plot_clutter2(t_a, t_d, clt_a, clt_d, start, end, name, path_out="./"):
     return
     
     
-def plot_scr2(t_a, t_d, scr_a, scr_d, start, end, name, path_out="./"):    
+def plot_scr2(t_a, t_d, scr_a, scr_d, start, end, name, params):
     '''Plot RCS time series'''
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
     plt.plot(t_a, scr_a, 'ro-', label='Ascending')
     plt.plot(t_d, scr_d, 'bo-', label='Descending')
     plt.xlim(start, end)
-    plt.ylim(0, 35)
+    plt.ylim(0, params[cf.YMAX_SCR])
     plt.xlabel('Date')
     plt.ylabel('SCR (dB)')
     plt.legend(loc=4)
@@ -125,14 +125,14 @@ def plot_scr2(t_a, t_d, scr_a, scr_d, start, end, name, path_out="./"):
     return    
     
     
-def plot_rcs2(t_a, t_d, rcs_a, rcs_d, start, end, name, path_out="./"):    
+def plot_rcs2(t_a, t_d, rcs_a, rcs_d, start, end, name, params):
     '''Plot RCS time series'''
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
     plt.plot(t_a, rcs_a, 'ro-', label='Ascending')
     plt.plot(t_d, rcs_d, 'bo-', label='Descending')
     plt.xlim(start, end)
-    plt.ylim(0, 35)
+    plt.ylim(0, params[cf.YMAX_RCS])
     plt.xlabel('Date')
     plt.ylabel('RCS (dB$\mathregular{m^2}$)')
     plt.legend(loc=4)

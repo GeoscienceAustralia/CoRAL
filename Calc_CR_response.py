@@ -34,7 +34,8 @@ else:
 
 # read config-file and convert parameters to required data type
 params = cf.get_config_params(config_file)
-
+print(params)
+print(params[cf.YMIN_CLUTTER])
 
 # General screen output
 print(f'Results will be saved into {params[cf.OUT_DIR]}')
@@ -49,7 +50,7 @@ run_start = datetime.now()
 files_a, files_d, sites = read_input_files(params)
 
 
-##################################
+#######################################
 # function for parallel loop processing
 sitenames = sites.keys()
 # note that dictionaries are unsorted and the variable name is hence not ordered
@@ -75,17 +76,19 @@ def processInput(name):
 num_cores = multiprocessing.cpu_count()
 # num_cores results in 32 on the NCI which in turn results in an error
 # hence the number of 16 cores is hard-coded here
-results = Parallel(n_jobs=16)(delayed(processInput)(name) for name in sitenames)
-
-# create output dir if it doesn't exist
-if not os.path.exists(params[cf.OUT_DIR]):
-    os.makedirs(params[cf.OUT_DIR])
+results = Parallel(n_jobs=params[cf.N_JOBS])(delayed(processInput)(name) for name in sitenames)
+#######################################
 
 
 # extract results and plot images
 print(' ') 
 print('Creating output data...')
 print(' ') 
+
+# create output dir if it doesn't exist
+if not os.path.exists(params[cf.OUT_DIR]):
+    os.makedirs(params[cf.OUT_DIR])
+
 plot_results(sites, results, params)
 
 

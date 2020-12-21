@@ -18,6 +18,11 @@ OUT_DIR = 'path_out'
 TARG_WIN_SZ = 'target_window_size'
 CLT_WIN_SZ = 'clutter_window_size'
 SUB_IM = 'sub_image_size'
+N_JOBS = 'n_jobs'
+YMAX_RCS = 'ymax_rcs'
+YMAX_SCR = 'ymax_scr'
+YMIN_CLUTTER = 'ymin_clutter'
+YMAX_CLUTTER = 'ymax_clutter'
 
 
 # Lookup to help convert args to correct type/defaults
@@ -27,6 +32,11 @@ PARAM_CONVERSION = {
     TARG_WIN_SZ: (int, 3),
     CLT_WIN_SZ: (int, 7),
     SUB_IM: (int, 51),
+    N_JOBS: (int, 16),
+    YMAX_RCS: (float, 35),
+    YMAX_SCR: (float, 30),
+    YMIN_CLUTTER: (float, -16),
+    YMAX_CLUTTER: (float, -2),
 }
 
 PATHS = [
