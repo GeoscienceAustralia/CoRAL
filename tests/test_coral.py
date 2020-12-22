@@ -5,7 +5,8 @@ import unittest, glob
 import os.path
 import numpy as np
 from coral.corner_reflector import *
-from coral.dataio import readpar, readmli, read_radar_coords, write_radar_coords
+from coral.dataio import readpar, readmli, read_radar_coords, write_radar_coords, read_input_files
+from coral import config as cf
 
 class TestCoral(unittest.TestCase):
     @classmethod
@@ -180,7 +181,33 @@ class TestShift(unittest.TestCase):
         self.assertEqual(cr_pos[0], 52)  
         self.assertEqual(cr_pos[1], 50)         
 
-        
+
+class TestConfigFile(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.file_in = "data/coral_serf.conf"
+        cls.sites = {'SERF': np.array([[-999, -999], [88, 111]])}
+
+    def test_config_file(self):
+        '''test function to read parameters from the config-file'''
+        params = cf.get_config_params(self.file_in)
+        self.assertEqual(params[cf.SUB_IM], 51)
+        self.assertEqual(params[cf.ASC_LIST], None)
+        self.assertEqual(params[cf.DESC_LIST], 'data/mli_desc.list')
+
+    def test_read_input_files(self):
+        '''test function to read input files from config-file'''
+        params = cf.get_config_params(self.file_in)
+        files_a, files_d, sites = read_input_files(params)
+        self.assertEqual(files_a, None)
+        self.assertEqual(files_d[0], './data/20180726_VV.mli')
+        self.assertEqual(files_d[8], './data/20181030_VV.mli')
+        self.assertEqual(self.sites.keys(), sites.keys())
+        array1 = sites.get('SERF')
+        array2 = self.sites.get('SERF')
+        np.testing.assert_array_equal(array1, array2)
+
+
 class TestCRfiles(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -192,7 +219,7 @@ class TestCRfiles(unittest.TestCase):
         cls.geom = "desc"
     
     def test_cr_file(self):           
-        '''test the calculation loop function'''
+        '''test function to read and write the radar coordinate files'''
         # open reduced CR coordinate file
         site, az, rg = read_radar_coords(self.file_in1)
         self.assertEqual(int(rg[0]), 87)

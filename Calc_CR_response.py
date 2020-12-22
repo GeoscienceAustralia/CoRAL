@@ -34,8 +34,6 @@ else:
 
 # read config-file and convert parameters to required data type
 params = cf.get_config_params(config_file)
-print(params)
-print(params[cf.YMIN_CLUTTER])
 
 # General screen output
 print(f'Results will be saved into {params[cf.OUT_DIR]}')
