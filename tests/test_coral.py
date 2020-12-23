@@ -4,9 +4,13 @@ This Python module contains unittests for testing CoRAL algorithms and workflow
 import unittest, glob
 import os.path
 import numpy as np
+import cv2 # requires opencv, e.g. use: pip install --user opencv-python-headless
 from coral.corner_reflector import *
 from coral.dataio import readpar, readmli, read_radar_coords, write_radar_coords, read_input_files
-from coral import config as cf
+from coral.plot import *
+from coral.plot2 import *
+
+
 
 class TestCoral(unittest.TestCase):
     @classmethod
@@ -124,7 +128,6 @@ class TestLoop(unittest.TestCase):
         cls.files = []
         for file in glob.glob("data/*.mli"):
             cls.files.append(file)
-
         cls.files.sort()
         cls.cr = [ 87, 110]
         cls.sub_im = 51
@@ -237,6 +240,72 @@ class TestCRfiles(unittest.TestCase):
         write_radar_coords(self.file_in2, self.file_out2, self.sites, self.geom)
         assert os.path.exists(self.file_out2) == 1
         os.remove(self.file_out2)
+
+
+class TestPlotting(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        file_in = "data/coral_serf.conf"
+        cls.name = 'SERF'
+        cls.geom = 'Descending'
+        cr = [88, 111] # this is used as initial coordinate
+        files = []
+        for file in glob.glob("data/*.mli"):
+            files.append(file)
+        files.sort()
+        cls.params = cf.get_config_params(file_in)
+        cls.params[cf.OUT_DIR] = './tests/'
+        cls.avgI, cls.rcs, cls.scr, cls.clt, cls.t, cls.cr_new, cls.cr_pos = loop(files, cls.params[cf.SUB_IM], cr, \
+                                                                cls.params[cf.TARG_WIN_SZ], cls.params[cf.CLT_WIN_SZ])
+        start_time = cls.t[0]
+        end_time = cls.t[-1]
+        margin = (end_time - start_time) / 50
+        cls.start = start_time - margin
+        cls.end = end_time + margin
+
+    def test_plot_mean_intensity(self):
+        '''test function to plot mean intensity (single geometry)'''
+        plot_mean_intensity(self.avgI, self.cr_pos, self.name, self.params)
+        ref_image = './tests/ref_images/mean_intensity_SERF.png'
+        act_image = './tests/mean_intensity_SERF.png'
+        imageA = cv2.imread(ref_image)
+        imageB = cv2.imread(act_image)
+        err = np.sum((imageA.astype("float") - imageB.astype("float")) ** 2) # squared sum of differences
+        self.assertEqual(err, 0.0)
+        os.remove(act_image)
+
+    def test_plot_clutter(self):
+        '''test function to plot clutter time series (single geometry)'''
+        plot_clutter(self.t, self.clt, self.start, self.end, self.name, self.geom, self.params)
+        ref_image = './tests/ref_images/clutter_SERF.png'
+        act_image = './tests/clutter_SERF.png'
+        imageA = cv2.imread(ref_image)
+        imageB = cv2.imread(act_image)
+        err = np.sum((imageA.astype("float") - imageB.astype("float")) ** 2) # squared sum of differences
+        self.assertEqual(err, 0.0)
+        os.remove(act_image)
+
+    def test_plot_scr(self):
+        '''test function to plot SCR (single geometry)'''
+        plot_scr(self.t, self.scr, self.start, self.end, self.name, self.geom, self.params)
+        ref_image = './tests/ref_images/scr_SERF.png'
+        act_image = './tests/scr_SERF.png'
+        imageA = cv2.imread(ref_image)
+        imageB = cv2.imread(act_image)
+        err = np.sum((imageA.astype("float") - imageB.astype("float")) ** 2)  # squared sum of differences
+        self.assertEqual(err, 0.0)
+        os.remove(act_image)
+
+    def test_plot_rcs(self):
+        '''test function to plot SCR (single geometry)'''
+        plot_rcs(self.t, self.rcs, self.start, self.end, self.name, self.geom, self.params)
+        ref_image = './tests/ref_images/rcs_SERF.png'
+        act_image = './tests/rcs_SERF.png'
+        imageA = cv2.imread(ref_image)
+        imageB = cv2.imread(act_image)
+        err = np.sum((imageA.astype("float") - imageB.astype("float")) ** 2)  # squared sum of differences
+        self.assertEqual(err, 0.0)
+        os.remove(act_image)
 
 
 if __name__ == '__main__':
