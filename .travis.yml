@@ -17,7 +17,7 @@ install:
   - pip install pytest pytest-cov coveralls opencv-python-headless
 
 script:
-  pytest --mpl --cov-report term-missing:skip-covered --cov=coral tests/
+  pytest --cov-report term-missing:skip-covered --cov=coral tests/
 
 after_success:
   - coveralls
