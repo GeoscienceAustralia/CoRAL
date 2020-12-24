@@ -32,6 +32,7 @@ def read_input_files(params):
                 files_a = [line.rstrip() for line in f_in]
                 files_a.sort()
         # read the ascending-pass radar coordinates of targets
+        filename = params[cf.ASC_CR_FILE_ORIG]
         if not os.path.exists(params[cf.ASC_CR_FILE_ORIG]):
             raise Exception(f'{params[cf.ASC_CR_FILE_ORIG]} does not exist')
         else:

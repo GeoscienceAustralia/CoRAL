@@ -2,7 +2,7 @@
 This python module contains functions for plotting CoRAL output
 """
 import matplotlib
-matplotlib.use('Agg')
+matplotlib.use('agg')
 from matplotlib import pyplot as plt
 from matplotlib.patches import RegularPolygon
 import numpy as np
@@ -88,7 +88,7 @@ def plot_clutter2(t_a, t_d, clt_a, clt_d, start, end, name, params):
         label.set_rotation(90)
         
     # save PNG file   
-    filename = path_out + "/clutter_" + name + ".png"    
+    filename = params[cf.OUT_DIR] + "/clutter_" + name + ".png"
     fig.savefig(filename, dpi=300, bbox_inches='tight')
 
     # avoid "RuntimeWarning: More than 20 figures have been opened"
@@ -115,7 +115,7 @@ def plot_scr2(t_a, t_d, scr_a, scr_d, start, end, name, params):
         label.set_rotation(90)
         
     # save PNG file   
-    filename = path_out + "/scr_" + name + ".png"       
+    filename = params[cf.OUT_DIR] + "/scr_" + name + ".png"
     fig.savefig(filename, dpi=300, bbox_inches='tight')
     
     # avoid "RuntimeWarning: More than 20 figures have been opened"
@@ -142,7 +142,7 @@ def plot_rcs2(t_a, t_d, rcs_a, rcs_d, start, end, name, params):
         label.set_rotation(90)
         
     # save PNG file   
-    filename = path_out + "/rcs_" + name + ".png"       
+    filename = params[cf.OUT_DIR] + "/rcs_" + name + ".png"
     fig.savefig(filename, dpi=300, bbox_inches='tight')
     
     # avoid "RuntimeWarning: More than 20 figures have been opened"

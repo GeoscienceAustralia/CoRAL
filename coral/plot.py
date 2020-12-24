@@ -2,7 +2,7 @@
 This python module contains functions for plotting CoRAL output
 """
 import matplotlib
-matplotlib.use('Agg')
+matplotlib.use('agg')
 from matplotlib import pyplot as plt
 from matplotlib.patches import RegularPolygon
 import numpy as np
