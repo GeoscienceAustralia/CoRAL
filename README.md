@@ -43,7 +43,7 @@ A Jupyter notebook is included in the package that demonstrates an example CoRAL
 
 To run unit tests from within CoRAL repository directory: 
 
-```python -m unittest discover tests/```
+```python3 -m unittest discover tests/```
 
 ### License
 
